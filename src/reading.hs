@@ -3,9 +3,10 @@ import Data.List
 import Data.Function
 import Text.Read
 import Control.Applicative
+import System.Environment
 import qualified Data.Map as Map
 
-data PostscriptCommand = PSNumber Int
+data PostscriptCommand = PSRationalNumber Rational
                        | PSAdd
                        | PSSub
                        | PSDiv
@@ -21,8 +22,7 @@ appendProlog s = "300 400 translate\n\n" ++ s
 
 appendEpilog :: String -> String
 appendEpilog s = s ++ "\n\nstroke showpage"
--- main = interact foldrLoop
-main = interact (appendProlog . appendEpilog . show . parseInput . splitByWords)
+
 
 splitByWords = filter (not . isSpace . head) . groupBy ((==) `on` not . isSpace)
 
@@ -32,29 +32,46 @@ foldrLoop input = foldr (\x y -> show (typeOfVariable x) ++ y) [] (splitByWords 
 
 typeOfVariable :: String -> PostscriptCommand
 typeOfVariable s = case k of
-        Just n -> PSNumber n
+        Just n -> PSRationalNumber (toRational n)
         _ -> PSError
     where k = readMaybe s :: Maybe Int
 
-toPSNumber :: Maybe Int -> Maybe PostscriptCommand
-toPSNumber (Just n) = Just (PSNumber n)
-toPSNumber _ = Nothing
-
 matchStringToToken :: String -> PostscriptCommand
-matchStringToToken "moveto" = PSMoveto
-matchStringToToken "lineto" = PSLineto
-matchStringToToken "closepath" = PSClosepath
-matchStringToToken "add" = PSAdd
-matchStringToToken "sub" = PSSub
-matchStringToToken "div" = PSDiv
-matchStringToToken "mul" = PSMul
+matchStringToToken "moveto"     = PSMoveto
+matchStringToToken "lineto"     = PSLineto
+matchStringToToken "closepath"  = PSClosepath
+matchStringToToken "add"        = PSAdd
+matchStringToToken "sub"        = PSSub
+matchStringToToken "div"        = PSDiv
+matchStringToToken "mul"        = PSMul
 matchStringToToken n = case n' of
-                Just n -> PSNumber n
-                Nothing -> PSError
+                Just n ->         PSRationalNumber (toRational n)
+                Nothing ->        PSError
             where n' = readMaybe n :: Maybe Int
 
 parseInput :: [String] -> [PostscriptCommand]
 parseInput =  map (\s -> matchStringToToken s)
 
--- type PostscriptStack = List
--- executeCommand :: PostscriptCommand -> PostscriptStack -> Int -> Int -> 
+--  currentCords Maybe (x,y)
+--  BegginingShape Maybe (x, y)
+-- EndShape Maybe(x, y)
+
+getScaleFromArguments :: [String] -> Int
+getScaleFromArguments (x:_) = case n of
+                        Just n -> n
+                        Nothing -> 1
+                    where n = readMaybe x :: Maybe Int
+getScaleFromArguments _ = 1
+
+main = do
+    args <- getArgs
+    let scale = getScaleFromArguments args
+    print scale
+
+    input <- getContents
+    let parsedInput = parseInput . splitByWords $ input
+
+    print parsedInput
+
+
+    -- main = interact (appendProlog . appendEpilog . show . parseInput . splitByWords)
