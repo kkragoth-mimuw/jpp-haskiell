@@ -17,8 +17,8 @@ point (a, b) = Point (a, b)
 vec   :: R2 -> Vec
 vec   (a, b) = Vec (a,b)
 
-newtype Line    = Line (Point, Point) deriving Show
-newtype Picture = Picture [Line]      deriving Show
+newtype Line    = Line (Point, Point) deriving (Eq, Show)
+newtype Picture = Picture [Line]      deriving (Eq, Show)
 
 line :: (R, R) -> (R, R) -> Picture
 line a@(x1, y1) b@(x2, y2) = Picture [Line (Point a, Point b)]

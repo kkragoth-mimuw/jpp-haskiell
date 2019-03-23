@@ -4,7 +4,10 @@ import Data.Function
 import Text.Read
 import Control.Applicative
 import System.Environment
+import Control.Monad.State
 import qualified Data.Map as Map
+
+import Lib
 
 data PostscriptCommand = PSRationalNumber Rational
                        | PSAdd
@@ -13,28 +16,11 @@ data PostscriptCommand = PSRationalNumber Rational
                        | PSMul
                        | PSMoveto
                        | PSLineto
+                       | PSTranslate
+                       | PSRotate
                        | PSClosepath
                        | PSError
                        deriving (Show, Eq)
-
-appendProlog :: String -> String
-appendProlog s = "300 400 translate\n\n" ++ s
-
-appendEpilog :: String -> String
-appendEpilog s = s ++ "\n\nstroke showpage"
-
-
-splitByWords = filter (not . isSpace . head) . groupBy ((==) `on` not . isSpace)
-
-foldrLoop :: String -> String
-foldrLoop input = foldr (\x y -> show (typeOfVariable x) ++ y) [] (splitByWords input)
-
-
-typeOfVariable :: String -> PostscriptCommand
-typeOfVariable s = case k of
-        Just n -> PSRationalNumber (toRational n)
-        _ -> PSError
-    where k = readMaybe s :: Maybe Int
 
 matchStringToToken :: String -> PostscriptCommand
 matchStringToToken "moveto"     = PSMoveto
@@ -44,17 +30,32 @@ matchStringToToken "add"        = PSAdd
 matchStringToToken "sub"        = PSSub
 matchStringToToken "div"        = PSDiv
 matchStringToToken "mul"        = PSMul
+matchStringToToken "translate"  = PSTranslate
+matchStringToToken "rotate"     = PSRotate
 matchStringToToken n = case n' of
-                Just n ->         PSRationalNumber (toRational n)
-                Nothing ->        PSError
-            where n' = readMaybe n :: Maybe Int
+                   Just n ->      PSRationalNumber (toRational n)
+                   Nothing ->     PSError
+        where n' = readMaybe n :: Maybe Int
 
 parseInput :: [String] -> [PostscriptCommand]
-parseInput =  map (\s -> matchStringToToken s)
+parseInput =  map matchStringToToken
 
---  currentCords Maybe (x,y)
---  BegginingShape Maybe (x, y)
--- EndShape Maybe(x, y)
+data PSState = PSState { stack :: [R] 
+                       , currentPoint :: Maybe Point  
+                       , startPoint :: Maybe Point
+                       }
+
+type CurrentPois = Maybe Point
+
+-- eval :: [PostscriptCommand] -> State PSState ()
+
+main = do
+    scale <- getScaleFromArgs <$> getArgs
+    parsedInput <- (parseInput . words) <$> getContents
+
+    print parsedInput
+
+
 
 getScaleFromArgs :: [String] -> Int
 getScaleFromArgs (x:_) = case n of
@@ -63,14 +64,11 @@ getScaleFromArgs (x:_) = case n of
                     where n = readMaybe x :: Maybe Int
 getScaleFromArgs _ = 1
 
-type CurrentCords = Maybe Point
-type BegginingCords = Maybe Point
-type EndShape = Maybe Point
+appendProlog :: String -> String
+appendProlog s = "300 400 translate\n\n" ++ s
 
-main = do
-    scale <- fmap getScaleFromArgs getArgs
-    parsedInput <- fmap (parseInput . splitByWords) getContents
+appendEpilog :: String -> String
+appendEpilog s = s ++ "\n\nstroke showpage"
 
-
-
-    -- main = interact (appendProlog . appendEpilog . show . parseInput . splitByWords)
+errorMessage :: String
+errorMessage = "/Courier findfont 24 scalefont setfont 0 0 moveto (Error) show"
