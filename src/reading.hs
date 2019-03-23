@@ -16,8 +16,13 @@ data PostscriptCommand = PSNumber Int
                        | PSError
                        deriving (Show, Eq)
 
+appendProlog :: String -> String
+appendProlog s = "300 400 translate\n\n" ++ s
+
+appendEpilog :: String -> String
+appendEpilog s = s ++ "\n\nstroke showpage"
 -- main = interact foldrLoop
-main = interact (show . parseInput . splitByWords)
+main = interact (appendProlog . appendEpilog . show . parseInput . splitByWords)
 
 splitByWords = filter (not . isSpace . head) . groupBy ((==) `on` not . isSpace)
 
