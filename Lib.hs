@@ -43,10 +43,7 @@ renderScaled s (Picture linesArray) = map (intLine . rationalCordinatesToIntCord
                       intLine [a, b, c, d]                                   = ((a,b), (c, d))
                       s'                                                     = toRational s
 
-
--- Transformations
-
-data Transform = Transform Vec R
+data Transform = Transform Vec R deriving (Show, Eq)
 
 translate :: Vec -> Transform
 translate v = Transform v 0
@@ -84,9 +81,10 @@ trvec (Transform             _  r) (Vec (x, y)) = Vec (x', y')
                                 where x' = x * (cosR r) - y * (sinR r)
                                       y' = x * (sinR r) - y * (cosR r)
                                       
--- instance Mon Transform where
-    -- m1
-    
+instance Mon Transform where
+    m1 = Transform (Vec (0, 0)) 0
+    (><) (Transform (Vec (x1, y1)) r1) (Transform (Vec (x2, y2)) r2) = Transform (Vec (x1 + x2, y1 + y2)) (r1 + r2)
+
 transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)
             where transformLine (Line (a, b)) = Line (trpoint t a, trpoint t b)
