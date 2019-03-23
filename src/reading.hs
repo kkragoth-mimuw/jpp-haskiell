@@ -56,22 +56,17 @@ parseInput =  map (\s -> matchStringToToken s)
 --  BegginingShape Maybe (x, y)
 -- EndShape Maybe(x, y)
 
-getScaleFromArguments :: [String] -> Int
-getScaleFromArguments (x:_) = case n of
+getScaleFromArgs :: [String] -> Int
+getScaleFromArgs (x:_) = case n of
                         Just n -> n
                         Nothing -> 1
                     where n = readMaybe x :: Maybe Int
-getScaleFromArguments _ = 1
+getScaleFromArgs _ = 1
 
 main = do
-    args <- getArgs
-    let scale = getScaleFromArguments args
-    print scale
+    scale <- fmap getScaleFromArgs getArgs
+    parsedInput <- fmap (parseInput . splitByWords) getContents
 
-    input <- getContents
-    let parsedInput = parseInput . splitByWords $ input
-
-    print parsedInput
 
 
     -- main = interact (appendProlog . appendEpilog . show . parseInput . splitByWords)
