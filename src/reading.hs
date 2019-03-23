@@ -63,6 +63,10 @@ getScaleFromArgs (x:_) = case n of
                     where n = readMaybe x :: Maybe Int
 getScaleFromArgs _ = 1
 
+type CurrentCords = Maybe Point
+type BegginingCords = Maybe Point
+type EndShape = Maybe Point
+
 main = do
     scale <- fmap getScaleFromArgs getArgs
     parsedInput <- fmap (parseInput . splitByWords) getContents
