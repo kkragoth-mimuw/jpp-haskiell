@@ -1,3 +1,6 @@
+import System.Environment
+import Text.Read
+import Control.Monad
 -- Types
 
 type R  = Rational
@@ -42,8 +45,8 @@ renderScaled :: Int -> Picture -> IntRendering
 renderScaled s (Picture linesArray) = map (intLine . rationalCordinatesToIntCordinates . scaleCordinates) linesArray
                 where scaleCordinates (Line ((Point (a, b)), (Point(c, d)))) = map (*s') [a,b,c,d]
                       rationalCordinatesToIntCordinates                      = map (round . fromRational)
-                      intLine [a, b, c, d] = ((a,b), (c, d))
-                      s' = toRational s
+                      intLine [a, b, c, d]                                   = ((a,b), (c, d))
+                      s'                                                     = toRational s
 
 
 -- Transformations
@@ -87,7 +90,12 @@ transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)
             where transformLine (Line (a, b)) = Line (trpoint t a, trpoint t b)
 
+
 main = do
-    let a = Picture [Line (Point (2, 1), Point (0, 0))]
-    let b = Picture [Line (Point (2, 1), Point (0, 0))]
+    -- h <- getArgs
+    -- print $ scaleFromArguments h
+    -- h <- getArgs
+    -- print h
+    -- let a = Picture [Line (Point (2, 1), Point (0, 0))]
+    -- let b = Picture [Line (Point (2, 1), Point (0, 0))]
     -- print (transform (Translation (Vec (2, 3))) a)
