@@ -1,11 +1,11 @@
 import Data.Char
 import Data.List
 import Data.Function
-import Text.Read
 import Control.Applicative
-import System.Environment
 import Control.Monad.State
-import qualified Data.Map as Map
+import Control.Monad.Identity
+import System.Environment
+import Text.Read
 
 import Lib
 
@@ -40,21 +40,36 @@ matchStringToToken n = case n' of
 parseInput :: [String] -> [PostscriptCommand]
 parseInput =  map matchStringToToken
 
-data PSState = PSState { stack :: [R] 
-                       , currentPoint :: Maybe Point  
-                       , startPoint :: Maybe Point
+data PSState = PSState { stack                     :: [R] 
+                       , currentPoint              :: Maybe Point  
+                       , startPointOfCurrentPath   :: Maybe Point
+                       , currentTransformation     :: Transform
+                       , picture                   :: Picture
                        }
 
-type CurrentPois = Maybe Point
 
--- eval :: [PostscriptCommand] -> State PSState ()
+evalPS :: [PostscriptCommand] -> State PSState Picture
+evalPS [] = gets picture
+
+evalPS 
+
 
 main = do
     scale <- getScaleFromArgs <$> getArgs
-    parsedInput <- (parseInput . words) <$> getContents
+    parsedInput <- parseInput . words <$> getContents
+
+    let initState = PSState { stack                   = []
+                            , currentPoint            = Nothing
+                            , startPointOfCurrentPath = Nothing
+                            , currentTransformation   = Transform (Vec (0, 0)) 0
+                            , picture                 = Picture []
+                            }
 
     print parsedInput
 
+    let picture = evalState (evalPS []) initState
+
+    print picture
 
 
 getScaleFromArgs :: [String] -> Int
@@ -64,8 +79,8 @@ getScaleFromArgs (x:_) = case n of
                     where n = readMaybe x :: Maybe Int
 getScaleFromArgs _ = 1
 
-appendProlog :: String -> String
-appendProlog s = "300 400 translate\n\n" ++ s
+prependProlog :: String -> String
+prependProlog s = "300 400 translate\n\n" ++ s
 
 appendEpilog :: String -> String
 appendEpilog s = s ++ "\n\nstroke showpage"
