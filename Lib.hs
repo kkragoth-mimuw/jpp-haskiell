@@ -1,3 +1,5 @@
+-- Piotr Szulc 347277
+
 module Lib where
 
 import Mon
