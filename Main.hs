@@ -142,7 +142,7 @@ main = do
 
     case eitherPicture of
         Right picture -> putStr $ prependProlog . appendEpilog . intRenderingToPSOutput $ renderScaled scale picture
-        Left _ -> print $ (prependProlog . appendEpilog) errorMessage
+        Left _ -> putStr $ (prependProlog . appendEpilog) errorMessage
 
 
 getScaleFromArgs :: [String] -> Int
