@@ -26,7 +26,8 @@ data PostscriptCommand = PSRationalNumber Rational
 
 data PostscriptRuntimeError = PSErrorDivisonByZero
                             | PSErrorStack
-                            | PSNoCurrentPoint
+                            | PSErrorNoCurrentPoint
+                            | PSUnknownToken String
                             deriving Show
 
 matchStringToToken :: String -> PostscriptCommand
@@ -55,20 +56,22 @@ data PSState = PSState { stack                     :: [R]
                        }
 
 
-evalArithmeticOperationPS :: (R -> R -> R) -> [PostscriptCommand] -> StateExcept String PSState Picture
+evalArithmeticOperationPS :: (R -> R -> R) -> [PostscriptCommand] -> StateExcept PostscriptRuntimeError PSState Picture
 evalArithmeticOperationPS op xs = do
     state <- get
     let s = stack state
     case s of
         r2:r1:xs' -> put state{stack=(op r1 r2):xs'}
-        _ -> throwError "Not exhaustive stack"
+        _ -> throwError PSErrorStack
     evalPS xs
                        
-evalPS :: [PostscriptCommand] -> StateExcept String PSState Picture
+evalPS :: [PostscriptCommand] -> StateExcept PostscriptRuntimeError PSState Picture
 evalPS [] = gets picture
-evalPS (PSError token:_) = throwError $ "Unknown token: " ++ token
-
-
+evalPS (PSError token:_) = throwError $ PSUnknownToken token
+evalPS (PSRationalNumber r:xs) = do
+    state <- get
+    put state{stack = r:stack state}
+    evalPS xs
 evalPS (PSAdd:xs) = evalArithmeticOperationPS ((+) :: R -> R -> R) xs
 evalPS (PSSub:xs) = evalArithmeticOperationPS ((-) :: R -> R -> R) xs
 evalPS (PSMul:xs) = evalArithmeticOperationPS ((*) :: R -> R -> R) xs
@@ -76,19 +79,20 @@ evalPS (PSDiv:xs) = do
     state <- get
     let s = stack state
     case s of
-        0:r1:xs'  -> throwError "Division by zzero"
+        0:r1:xs'  -> throwError PSErrorDivisonByZero
         r2:r1:xs' -> put state{stack=(r1 / r2):xs'}
-        _ -> throwError "Not exhaustive stack"
+        _ -> throwError PSErrorStack
     evalPS xs
-
 evalPS (PSMoveto:xs) = do
     state <- get
     let s = stack state
     case s of 
-        r2:r1:xs' -> put state{ currentPoint=Just (Point (r1, r2))
-                             , stack=xs'
-                             }
-        _ -> throwError "Not exhaustive stack"
+        r2:r1:xs' -> let newPoint = Just (Point (r1, r2)) in
+                            put state{ currentPoint=newPoint
+                                     , startPointOfCurrentPath=newPoint
+                                     , stack=xs'
+                                     }
+        _ -> throwError PSErrorStack
     evalPS xs
 
 type StateExcept e s a = ExceptT e (State s) a
@@ -104,11 +108,13 @@ main = do
                             , picture                 = Picture []
                             }
 
-    print parsedInput
+    -- print parsedInput
 
-    let picture = evalState (runExceptT (evalPS parsedInput)) initState
+    let eitherPicture = evalState (runExceptT (evalPS parsedInput)) initState
 
-    print picture
+    case eitherPicture of
+        Left _ -> print $ (prependProlog . appendEpilog) errorMessage
+        Right picture -> print picture
 
 
 getScaleFromArgs :: [String] -> Int
