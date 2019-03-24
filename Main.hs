@@ -161,7 +161,7 @@ prependProlog :: String -> String
 prependProlog s = "300 400 translate\n" ++ s
 
 appendEpilog :: String -> String
-appendEpilog s = s ++ "\nstroke showpage"
+appendEpilog s = s ++ "\nstroke showpage\n"
 
 errorMessage :: String
 errorMessage = "/Courier findfont 24 scalefont setfont 0 0 moveto (Error) show"
