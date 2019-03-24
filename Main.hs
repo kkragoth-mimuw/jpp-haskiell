@@ -116,7 +116,7 @@ evalPS (PSClosepath:xs) = do
         (Just p1, Just p2) -> if (p1 == p2) then
                                     return ()
                               else
-                                    let newPicture = (&) (picture state) (Picture [Line (p1, p2)])
+                                    let newPicture = (&) (picture state) (Picture [Line (p2, p1)])
                                         in put state{picture=newPicture
                                                     ,currentPoint=startP
                                                     }
@@ -155,13 +155,14 @@ getScaleFromArgs _ = 1
 lineToSimplePS :: IntLine -> String
 lineToSimplePS ((a, b), (c, d)) = show a ++ " " ++ show b ++ " moveto " ++ show c ++ " " ++ show d ++ " lineto"
 intRenderingToPSOutput :: IntRendering -> String
-intRenderingToPSOutput intRendering = intercalate "\n" (map lineToSimplePS intRendering)
+intRenderingToPSOutput [] = ""
+intRenderingToPSOutput intRendering = (intercalate "\n" (map lineToSimplePS intRendering)) ++ "\n"
 
 prependProlog :: String -> String
 prependProlog s = "300 400 translate\n" ++ s
 
 appendEpilog :: String -> String
-appendEpilog s = s ++ "\nstroke showpage\n"
+appendEpilog s = s ++ "stroke showpage\n"
 
 errorMessage :: String
 errorMessage = "/Courier findfont 24 scalefont setfont 0 0 moveto (Error) show"
