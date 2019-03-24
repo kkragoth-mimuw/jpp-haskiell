@@ -2,7 +2,6 @@
 
 import Data.Char
 import Data.List
-import Data.Function
 import Control.Applicative
 import Control.Monad.State
 import Control.Monad.Except
@@ -59,8 +58,7 @@ data PSState = PSState { stack                     :: [R]
 evalArithmeticOperationPS :: (R -> R -> R) -> [PostscriptCommand] -> StateExcept PostscriptRuntimeError PSState Picture
 evalArithmeticOperationPS op xs = do
     state <- get
-    let s = stack state
-    case s of
+    case stack state of
         r2:r1:xs' -> put state{stack=(op r1 r2):xs'}
         _ -> throwError PSErrorStack
     evalPS xs
@@ -77,16 +75,14 @@ evalPS (PSSub:xs) = evalArithmeticOperationPS ((-) :: R -> R -> R) xs
 evalPS (PSMul:xs) = evalArithmeticOperationPS ((*) :: R -> R -> R) xs
 evalPS (PSDiv:xs) = do
     state <- get
-    let s = stack state
-    case s of
+    case stack state of
         0:r1:xs'  -> throwError PSErrorDivisonByZero
         r2:r1:xs' -> put state{stack=(r1 / r2):xs'}
         _ -> throwError PSErrorStack
     evalPS xs
 evalPS (PSMoveto:xs) = do
     state <- get
-    let s = stack state
-    case s of 
+    case stack state of 
         r2:r1:xs' -> let newPoint = Just (Point (r1, r2)) in
                             put state{ currentPoint=newPoint
                                      , startPointOfCurrentPath=newPoint
@@ -94,6 +90,40 @@ evalPS (PSMoveto:xs) = do
                                      }
         _ -> throwError PSErrorStack
     evalPS xs
+evalPS (PSLineto:xs) = do
+    state <- get
+    case currentPoint state of
+        Nothing -> throwError PSErrorNoCurrentPoint
+        Just p -> case stack state of
+                        r2:r1:xs' -> let newPoint = Point (r1, r2)
+                                         newLine = Line (p, newPoint)
+                                         newPicture = (&) (picture state) (Picture [newLine])
+                                in put state{ currentPoint=Just newPoint
+                                         , stack=xs'
+                                         , picture=newPicture
+                                        }
+                        _ -> throwError PSErrorStack
+    evalPS xs
+
+evalPS (PSClosepath:xs) = do
+    state <- get
+    let startP = startPointOfCurrentPath state
+    let curP = currentPoint state
+
+    case (startP, curP) of
+        (Nothing, _) -> return ()
+        (_, Nothing) -> return ()
+        (Just p1, Just p2) -> if (p1 == p2) then
+                                    return ()
+                              else
+                                    let newPicture = (&) (picture state) (Picture [Line (p1, p2)])
+                                        in put state{picture=newPicture
+                                                    ,currentPoint=startP
+                                                    }
+    evalPS xs
+
+evalPS (PSRotate:xs) = undefined
+evalPS (PSTranslate:xs) = undefined
 
 type StateExcept e s a = ExceptT e (State s) a
 
@@ -108,13 +138,11 @@ main = do
                             , picture                 = Picture []
                             }
 
-    -- print parsedInput
-
     let eitherPicture = evalState (runExceptT (evalPS parsedInput)) initState
 
     case eitherPicture of
+        Right picture -> putStr $ prependProlog . appendEpilog . intRenderingToPSOutput $ renderScaled scale picture
         Left _ -> print $ (prependProlog . appendEpilog) errorMessage
-        Right picture -> print picture
 
 
 getScaleFromArgs :: [String] -> Int
@@ -123,6 +151,11 @@ getScaleFromArgs (x:_) = case n of
                         Nothing -> 1
                     where n = readMaybe x :: Maybe Int
 getScaleFromArgs _ = 1
+
+lineToSimplePS :: IntLine -> String
+lineToSimplePS ((a, b), (c, d)) = show a ++ " " ++ show b ++ " moveto " ++ show c ++ " " ++ show d ++ " lineto"
+intRenderingToPSOutput :: IntRendering -> String
+intRenderingToPSOutput intRendering = intercalate "\n" (map lineToSimplePS intRendering)
 
 prependProlog :: String -> String
 prependProlog s = "300 400 translate\n" ++ s
