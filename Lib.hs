@@ -83,7 +83,8 @@ trvec (Transform             _  r) (Vec (x, y)) = Vec (x', y')
                                       
 instance Mon Transform where
     m1 = Transform (Vec (0, 0)) 0
-    (><) (Transform (Vec (x1, y1)) r1) (Transform (Vec (x2, y2)) r2) = Transform (Vec (x1 + x2, y1 + y2)) (r1 + r2)
+    (><) (Transform v1@(Vec (x1, y1)) r1) (Transform v2@(Vec (x2, y2)) r2) = Transform ((><) v1 v2RotatedByr1) (r1 + r2)
+                                                                    where v2RotatedByr1 = trvec (Transform (Vec (0, 0)) r1) v2
 
 transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)
