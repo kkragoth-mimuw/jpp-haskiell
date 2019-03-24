@@ -8,6 +8,7 @@ import Control.Monad.Except
 import System.Environment
 import Text.Read (readMaybe)
 
+import Mon
 import Lib
 
 data PostscriptCommand = PSRationalNumber Rational
@@ -96,7 +97,8 @@ evalPS (PSLineto:xs) = do
         Nothing -> throwError PSErrorNoCurrentPoint
         Just p -> case stack state of
                         r2:r1:xs' -> let newPoint = Point (r1, r2)
-                                         newLine = Line (p, newPoint)
+                                         newTranslatedPoint = trpoint (currentTransformation state) newPoint
+                                         newLine = Line (p, newTranslatedPoint)
                                          newPicture = (&) (picture state) (Picture [newLine])
                                 in put state{ currentPoint=Just newPoint
                                          , stack=xs'
@@ -122,8 +124,26 @@ evalPS (PSClosepath:xs) = do
                                                     }
     evalPS xs
 
-evalPS (PSRotate:xs) = undefined
-evalPS (PSTranslate:xs) = undefined
+evalPS (PSRotate:xs) = do
+    state <- get
+
+    let previousTransformation = currentTransformation state
+
+    case stack state of
+        r:xs' -> let newTransformation = (><) previousTransformation (rotate r)
+                    in put state{currentTransformation=newTransformation, stack=xs'}
+        _ -> throwError PSErrorStack
+        
+    evalPS xs
+
+evalPS (PSTranslate:xs) = do
+    state <- get
+    let previousTransformation = currentTransformation state
+    case stack state of
+        r2:r1:xs' -> let newTransformation = (><) previousTransformation (translate (Vec (r1, r2)))
+                    in put state{currentTransformation=newTransformation, stack=xs'}
+        _ -> throwError PSErrorStack
+    evalPS xs
 
 type StateExcept e s a = ExceptT e (State s) a
 
@@ -134,7 +154,7 @@ main = do
     let initState = PSState { stack                   = []
                             , currentPoint            = Nothing
                             , startPointOfCurrentPath = Nothing
-                            , currentTransformation   = Transform (Vec (0, 0)) 0
+                            , currentTransformation   = m1
                             , picture                 = Picture []
                             }
 

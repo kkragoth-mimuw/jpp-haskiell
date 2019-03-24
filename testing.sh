@@ -17,5 +17,5 @@ do
         ((++bad))
     fi
 done
-
-echo -e "\e[0m Passes: $good/$all"
+echo -e "\e[0mPasses: $good/$all"
+echo -e ""

@@ -51,7 +51,7 @@ translate :: Vec -> Transform
 translate v = Transform v 0
 
 rotate :: R -> Transform
-rotate r = Transform m1 0
+rotate = Transform m1
 
 fullCircle :: R
 fullCircle = toRational 360
@@ -68,14 +68,20 @@ sinR = bhaskaraIsinApprox
 cosR :: R -> R
 cosR = bhaskaraIcosApprox
 
+-- http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
 trpoint :: Transform -> Point -> Point
 trpoint (Transform (Vec (vx, vy)) 0) (Point (x, y)) = Point (x + vx, y + vy)
 trpoint (Transform (Vec ( 0,  0)) r) (Point (x, y)) = Point (x', y')
                                     where x' = x * (cosR r) - y * (sinR r)
                                           y' = x * (sinR r) - y * (cosR r)
-trpoint (Transform (Vec (vx, vy)) r) (Point (x, y)) = Point (xt + x', yt + y')
-                                    where Point(xt, yt) = trpoint (Transform (Vec (vx, vy)) 0) (Point (x, y))
+trpoint (Transform (Vec (vx, vy)) r) (Point (x, y)) = Point (x', y')
+                                    where Point(xt, yt) = trpoint (Transform (Vec (vx, vy)) 0) (Point(x, y))
                                           Point(x', y') = trpoint (Transform (Vec ( 0,  0)) r) (Point (x, y))
+
+a = translate $ Vec (100, 0)
+b = rotate 90
+c = (><) a b
+d = trpoint c (Point (50, 50))
 
 trvec :: Transform -> Vec -> Vec
 trvec (Transform (Vec (vx, vy)) 0) (Vec (x, y)) = Vec (x, y)
@@ -84,7 +90,7 @@ trvec (Transform             _  r) (Vec (x, y)) = Vec (x', y')
                                       y' = x * (sinR r) - y * (cosR r)
                                       
 instance Mon Transform where
-    m1 = Transform (Vec (0, 0)) 0
+    m1 = Transform (m1 :: Vec) 0
     (><) (Transform v1@(Vec (x1, y1)) r1) (Transform v2@(Vec (x2, y2)) r2) = Transform ((><) v1 v2RotatedByr1) (r1 + r2)
                                                                     where v2RotatedByr1 = trvec (Transform (Vec (0, 0)) r1) v2
 
