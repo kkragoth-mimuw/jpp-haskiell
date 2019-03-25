@@ -2,6 +2,8 @@
 
 module Lib where
 
+import Data.Fixed (mod')
+
 import Mon
 
 type R  = Rational
@@ -59,14 +61,16 @@ fullCircle = toRational 360
 bhaskaraIsinApprox :: R -> R
 bhaskaraIsinApprox x = (4 * x * (180 - x)) / (40500 - x * (180 - x))
 
-bhaskaraIcosApprox :: R -> R
-bhaskaraIcosApprox x = bhaskaraIsinApprox $ (fullCircle / 4) - x
-
 sinR :: R -> R
-sinR = bhaskaraIsinApprox
+sinR x' = let x = mod' (fromRational x') 360
+            in case x of
+                x |   0 <= x && x <  90 ->          bhaskaraIsinApprox $ x
+                x |  90 <= x && x < 180 ->          bhaskaraIsinApprox $ 180 - x
+                x | 180 <= x && x < 270 -> negate . bhaskaraIsinApprox $ x - 180
+                _                       -> negate . bhaskaraIsinApprox $ 360 - x
 
 cosR :: R -> R
-cosR = bhaskaraIcosApprox
+cosR x = sinR $ (360 / 4) - x
 
 -- Reference material: http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
 trpoint :: Transform -> Point -> Point
@@ -78,10 +82,9 @@ trpoint (Transform (Vec (vx, vy)) r) (Point (x, y)) = Point (vx + x', vy + y')
                                     where Point(x', y') = trpoint (Transform (Vec ( 0,  0)) r) (Point (x, y))
 
 trvec :: Transform -> Vec -> Vec
-trvec (Transform (Vec (vx, vy)) 0) (Vec (x, y)) = Vec (x, y)
-trvec (Transform             _  r) (Vec (x, y)) = Vec (x', y')
-                                where x' = x * cosR r - y * sinR r
-                                      y' = x * sinR r - y * cosR r
+trvec (Transform (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
+                                where x' = x * (cosR r) - y * (sinR r)
+                                      y' = x * (sinR r) - y * (cosR r)
                                       
 instance Mon Transform where
     m1 = Transform (m1 :: Vec) 0
@@ -91,3 +94,10 @@ instance Mon Transform where
 transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)
             where transformLine (Line (a, b)) = Line (trpoint t a, trpoint t b)
+
+p = Point (0, 0)
+a = rotate (-90)
+b = translate (Vec (0, 100))
+c = (><) a b
+d = trpoint c p
+e = trvec (Transform (Vec (0, 0)) (-90)) (Vec (0, 100))
