@@ -7,6 +7,7 @@ import Control.Monad.State
 import Control.Monad.Except
 import System.Environment
 import Text.Read (readMaybe)
+import System.Exit (exitSuccess)
 
 import Mon
 import Lib
@@ -58,7 +59,6 @@ data PSState = PSState { stack                     :: [R]
                        , currentTransformation     :: Transform
                        , picture                   :: Picture
                        }
-
 
 initState =    PSState { stack                     = []
                        , currentPoint              = Nothing
@@ -166,7 +166,7 @@ evalPSCommand PSTranslate = do
 
 
 main = do
-    scale <- getScaleFromArgs <$> getArgs
+    scale <- getScaleFromArgsIO
     parsedInput <- parseInput . words <$> getContents
 
     let eitherPicture = evalState (runExceptT (evalPSCommands parsedInput)) initState
@@ -176,12 +176,17 @@ main = do
         Left _ -> putStr $ (prependProlog . appendEpilog) errorMessage
 
 
-getScaleFromArgs :: [String] -> Int
-getScaleFromArgs (x:_) = case n of
-                        Just n -> n
-                        Nothing -> 1
+getScaleFromArgsIO :: IO Int
+getScaleFromArgsIO = do
+        args <- getArgs
+        case args of
+            (x:_) -> case n of
+                        Just n -> return n
+                        Nothing -> do
+                            print $ "Not integer argument: " ++ x ++ ". Usage: ./Main [scale]"
+                            exitSuccess
                     where n = readMaybe x :: Maybe Int
-getScaleFromArgs _ = 1
+            _  -> return 1
 
 lineToSimplePS :: IntLine -> String
 lineToSimplePS ((a, b), (c, d)) = show a ++ " " ++ show b ++ " moveto " ++ show c ++ " " ++ show d ++ " lineto"
@@ -197,4 +202,4 @@ appendEpilog :: String -> String
 appendEpilog s = s ++ "stroke showpage\n"
 
 errorMessage :: String
-errorMessage = "/Courier findfont 24 scalefont setfont 0 0 moveto (Error) show"
+errorMessage = "/Courier findfont 24 scalefont setfont 0 0 moveto (Error) show\n"
