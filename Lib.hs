@@ -42,18 +42,27 @@ type IntRendering = [IntLine]
 
 renderScaled :: Int -> Picture -> IntRendering
 renderScaled s (Picture linesArray) = map (intLine . rationalCordinatesToIntCordinates . scaleCordinates) linesArray
-                where scaleCordinates (Line ((Point (a, b)), (Point(c, d)))) = map (*s') [a,b,c,d]
+                where scaleCordinates (Line ((Point (a, b)), (Point(c, d)))) = map (*sR) [a,b,c,d]
                       rationalCordinatesToIntCordinates                      = map (round . fromRational)
                       intLine [a, b, c, d]                                   = ((a,b), (c, d))
-                      s'                                                     = toRational s
+                      sR                                                     = toRational s
 
-data Transform = Transform Vec R deriving (Show, Eq)
+
+data Transformation = Transformation Vec R deriving (Show)
+
+instance Eq Transformation where
+    (Transformation v1 r1) == (Transformation v2 r2) = v1 == v2 && (r1 `mod'` fullCircle) == (r2 `mod'` fullCircle)
+
+-- List of Transformations
+-- Tried to do this using single Transformation but due to sinR, cosR precision errors
+-- composition associativity in TestTransform failed
+data Transform = Transform [Transformation] deriving (Show, Eq)
 
 translate :: Vec -> Transform
-translate v = Transform v 0
+translate v = Transform [Transformation v 0]
 
 rotate :: R -> Transform
-rotate = Transform m1
+rotate r = Transform [Transformation m1 0]
 
 fullCircle :: R
 fullCircle = toRational 360
@@ -64,40 +73,45 @@ bhaskaraIsinApprox x = (4 * x * (180 - x)) / (40500 - x * (180 - x))
 sinR :: R -> R
 sinR x' = let x = mod' x' 360
             in case x of
-                x |   0 <= x && x < 180 ->          bhaskaraIsinApprox   x
-                x | 180 <= x && x < 360 -> negate $ bhaskaraIsinApprox $ x - 180
+                x |   0 <= x && x < 180 ->          bhaskaraIsinApprox $  x
+                x | 180 <= x && x < 360 -> negate $ bhaskaraIsinApprox $  x - 180
 
 cosR :: R -> R
 cosR x = sinR $ 90 - x
 
--- Reference material: http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
-trpoint :: Transform -> Point -> Point
-trpoint (Transform (Vec (vx, vy)) r) (Point (x, y)) = Point (x' + vx, y' + vy)
+combineTransformation :: Transformation -> Transformation -> Transformation
+combineTransformation (Transformation v1@(Vec (x1, y1)) r1) (Transformation v2@(Vec (x2, y2)) r2) = Transformation (v1 >< v2RotatedByr1) (r1 + r2) 
+                                                                    where v2RotatedByr1 = transformationVector (Transformation (Vec (0, 0)) r1) v2 
+
+foldrTransform :: Transform -> Transformation
+foldrTransform (Transform []) = (Transformation (Vec (0, 0)) 0) -- foldr combineTransformation (Transformation (Vec (0, 0)) 0)
+foldrTransform (Transform [t]) = t
+foldrTransform (Transform (t:xs)) = combineTransformation t (foldrTransform (Transform xs))
+
+transformationPoint :: Transformation -> Point -> Point
+transformationPoint (Transformation (Vec (vx, vy)) r) (Point (x, y)) = Point (x' + vx, y' + vy)
                                     where x' = x * (cosR r) - y * (sinR r)
                                           y' = x * (sinR r) + y * (cosR r)
 
-trvec :: Transform -> Vec -> Vec
-trvec (Transform (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
+-- Reference material: http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
+trpoint :: Transform -> Point -> Point
+trpoint t p = transformationPoint (foldrTransform t) p
+
+
+transformationVector :: Transformation -> Vec -> Vec
+transformationVector (Transformation (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
                             where x' = x * (cosR r) - y * (sinR r)
                                   y' = x * (sinR r) + y * (cosR r)
-                                      
-instance Mon Transform where
-    m1 = Transform (m1 :: Vec) 0
-    (><) (Transform v1@(Vec (x1, y1)) r1) (Transform v2@(Vec (x2, y2)) r2) = Transform ((><) v1 v2RotatedByr1) (r1 + r2) 
-                                                                    where v2RotatedByr1 = trvec (Transform (Vec (0, 0)) r1) v2
 
--- instance Eq Transform where
---     (Transform v1@(Vec (x1, y1)) r1) == (Transform v2@(Vec (x2, y2)) r2) = (v1 == v2) && (r1 `mod'` fullCircle) == (r2 `mod'` fullCircle)
---     t1 /= t2 = not (t1 == t2)
+trvec :: Transform -> Vec -> Vec
+trvec t v = transformationVector (foldrTransform t) v
+
+instance Mon Transform where
+    m1 = Transform []
+    (><) (Transform t1) (Transform t2) = Transform (t1 ++ t2)
+                                where combinedT = t1 ++ t2
+
 
 transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)
             where transformLine (Line (a, b)) = Line (trpoint t a, trpoint t b)
-
-a = translate (Vec (100, 0))
-b = rotate 90
-c = translate (Vec (300, 50))
--- c = translate (Vec (350, 90))
--- d = trpoint c (Point (50, 50))
-
--- (a >< b) >< c == a >< (b >< c)
