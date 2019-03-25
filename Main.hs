@@ -48,7 +48,7 @@ matchStringToToken n = case n' of
                    Nothing ->     PSError n
         where n' = readMaybe n :: Maybe Int
 
-        
+
 data PSState = PSState { stack                     :: [R] 
                        , currentPoint              :: Maybe Point  
                        , startPointOfCurrentPath   :: Maybe Point
@@ -104,9 +104,10 @@ evalPSCommand PSDiv = do
 evalPSCommand PSMoveto = do
     state <- get
     case stack state of 
-        r2:r1:xs -> let newPoint = Just (Point (r1, r2))
-                         in put state{ currentPoint = newPoint
-                                     , startPointOfCurrentPath = newPoint
+        r2:r1:xs -> let newPoint = (Point (r1, r2))
+                        newTranslatedPoint = trpoint (currentTransformation state) newPoint
+                         in put state{ currentPoint = Just newTranslatedPoint
+                                     , startPointOfCurrentPath = Just newTranslatedPoint
                                      , stack = xs
                                      }
         _ -> throwError PSErrorStack
@@ -120,7 +121,7 @@ evalPSCommand PSLineto = do
                                         newTranslatedPoint = trpoint (currentTransformation state) newPoint
                                         newLine = Line (p, newTranslatedPoint)
                                         newPicture = (&) (picture state) (Picture [newLine])
-                                      in put state{ currentPoint = Just newPoint
+                                      in put state{ currentPoint = Just newTranslatedPoint
                                                   , stack = xs
                                                   , picture = newPicture
                                                   }
