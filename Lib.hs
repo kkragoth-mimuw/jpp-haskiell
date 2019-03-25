@@ -53,7 +53,7 @@ translate :: Vec -> Transform
 translate v = Transform v 0
 
 rotate :: R -> Transform
-rotate = Transform m1
+rotate r = Transform m1 (r `mod'` fullCircle)
 
 fullCircle :: R
 fullCircle = toRational 360
@@ -82,9 +82,10 @@ trpoint (Transform (Vec (vx, vy)) r) (Point (x, y)) = Point (vx + x', vy + y')
                                     where Point(x', y') = trpoint (Transform (Vec ( 0,  0)) r) (Point (x, y))
 
 trvec :: Transform -> Vec -> Vec
-trvec (Transform (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
-                                where x' = x * (cosR r) - y * (sinR r)
-                                      y' = x * (sinR r) - y * (cosR r)
+trvec (Transform (Vec (vx, vy)) 0) (Vec (x, y)) = Vec (x, y)
+trvec (Transform             _  r) (Vec (x, y)) = Vec (x', y')
+                                where x' = x * cosR r - y * sinR r
+                                      y' = x * sinR r - y * cosR r
                                       
 instance Mon Transform where
     m1 = Transform (m1 :: Vec) 0
