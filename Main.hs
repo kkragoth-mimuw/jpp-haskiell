@@ -43,6 +43,9 @@ matchStringToToken     "lineto" = PSLineto
 matchStringToToken     "rotate" = PSRotate
 matchStringToToken  "closepath" = PSClosepath
 matchStringToToken  "translate" = PSTranslate
+matchStringToToken ('+':'-':_)  = PSError "Invalid combination +-"
+matchStringToToken ('+':'+':_)  = PSError "Invalid combination ++"
+matchStringToToken    ('+':xs)  = matchStringToToken xs
 matchStringToToken n = case n' of
                    Just n ->      PSRationalNumber (toRational n)
                    Nothing ->     PSError n
