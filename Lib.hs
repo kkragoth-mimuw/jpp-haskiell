@@ -62,7 +62,7 @@ translate :: Vec -> Transform
 translate v = Transform [Transformation v 0]
 
 rotate :: R -> Transform
-rotate r = Transform [Transformation m1 0]
+rotate r = Transform [Transformation m1 r]
 
 fullCircle :: R
 fullCircle = toRational 360
@@ -81,10 +81,10 @@ cosR x = sinR $ 90 - x
 
 combineTransformation :: Transformation -> Transformation -> Transformation
 combineTransformation (Transformation v1@(Vec (x1, y1)) r1) (Transformation v2@(Vec (x2, y2)) r2) = Transformation (v1 >< v2RotatedByr1) (r1 + r2) 
-                                                                    where v2RotatedByr1 = transformationVector (Transformation (Vec (0, 0)) r1) v2 
+                                                                    where v2RotatedByr1 = transformationVector (Transformation m1 r1) v2 
 
 foldrTransform :: Transform -> Transformation
-foldrTransform (Transform []) = (Transformation (Vec (0, 0)) 0) -- foldr combineTransformation (Transformation (Vec (0, 0)) 0)
+foldrTransform (Transform []) = (Transformation (Vec (0, 0)) 0)
 foldrTransform (Transform [t]) = t
 foldrTransform (Transform (t:xs)) = combineTransformation t (foldrTransform (Transform xs))
 
@@ -95,8 +95,7 @@ transformationPoint (Transformation (Vec (vx, vy)) r) (Point (x, y)) = Point (x'
 
 -- Reference material: http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
 trpoint :: Transform -> Point -> Point
-trpoint t p = transformationPoint (foldrTransform t) p
-
+trpoint t = transformationPoint (foldrTransform t)
 
 transformationVector :: Transformation -> Vec -> Vec
 transformationVector (Transformation (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
@@ -104,7 +103,7 @@ transformationVector (Transformation (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y
                                   y' = x * (sinR r) + y * (cosR r)
 
 trvec :: Transform -> Vec -> Vec
-trvec t v = transformationVector (foldrTransform t) v
+trvec t = transformationVector (foldrTransform t)
 
 instance Mon Transform where
     m1 = Transform []

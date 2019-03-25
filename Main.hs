@@ -104,7 +104,7 @@ evalPSCommand PSDiv = do
 evalPSCommand PSMoveto = do
     state <- get
     case stack state of 
-        r2:r1:xs -> let newPoint = (Point (r1, r2))
+        r2:r1:xs -> let newPoint = Point (r1, r2)
                         newTranslatedPoint = trpoint (currentTransformation state) newPoint
                          in put state{ currentPoint = Just newTranslatedPoint
                                      , startPointOfCurrentPath = Just newTranslatedPoint
@@ -134,8 +134,7 @@ evalPSCommand PSClosepath = do
     case (startP, curP) of
         (Nothing, _) -> return ()
         (_, Nothing) -> return ()
-        (Just p1, Just p2) -> if (p1 == p2) then
-                                    return ()
+        (Just p1, Just p2) -> if p1 == p2 then return ()
                               else
                                     let newPicture = (&) (picture state) (Picture [Line (p2, p1)])
                                         in put state{ picture = newPicture
