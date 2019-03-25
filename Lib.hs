@@ -68,7 +68,7 @@ sinR = bhaskaraIsinApprox
 cosR :: R -> R
 cosR = bhaskaraIcosApprox
 
--- http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
+-- Reference material: http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
 trpoint :: Transform -> Point -> Point
 trpoint (Transform (Vec (vx, vy)) 0) (Point (x, y)) = Point (x + vx, y + vy)
 trpoint (Transform (Vec ( 0,  0)) r) (Point (x, y)) = Point (x', y')
@@ -76,24 +76,17 @@ trpoint (Transform (Vec ( 0,  0)) r) (Point (x, y)) = Point (x', y')
                                           y' = x * (sinR r) - y * (cosR r)
 trpoint (Transform (Vec (vx, vy)) r) (Point (x, y)) = Point (vx + x', vy + y')
                                     where Point(x', y') = trpoint (Transform (Vec ( 0,  0)) r) (Point (x, y))
-                                          
-                                   
-p = Point (50, 50)
-a = translate $ Vec (100, 0)
-b = rotate 90
-c = (><) a b
-d = trpoint c p
 
 trvec :: Transform -> Vec -> Vec
 trvec (Transform (Vec (vx, vy)) 0) (Vec (x, y)) = Vec (x, y)
 trvec (Transform             _  r) (Vec (x, y)) = Vec (x', y')
-                                where x' = x * (cosR r) - y * (sinR r)
-                                      y' = x * (sinR r) - y * (cosR r)
+                                where x' = x * cosR r - y * sinR r
+                                      y' = x * sinR r - y * cosR r
                                       
 instance Mon Transform where
     m1 = Transform (m1 :: Vec) 0
-    (><) (Transform v1@(Vec (x1, y1)) r1) (Transform v2@(Vec (x2, y2)) r2) = Transform ((><) v1 v2) (r1 + r2)
-                                                                    -- where v2RotatedByr1 = trvec (Transform (Vec (0, 0)) r1) v2
+    (><) (Transform v1@(Vec (x1, y1)) r1) (Transform v2@(Vec (x2, y2)) r2) = Transform ((><) v1 v2RotatedByr1) (r1 + r2)
+                                                                    where v2RotatedByr1 = trvec (Transform (Vec (0, 0)) r1) v2
 
 transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)
