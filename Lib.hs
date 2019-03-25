@@ -47,14 +47,13 @@ renderScaled s (Picture linesArray) = map (intLine . rationalCordinatesToIntCord
                       intLine [a, b, c, d]                                   = ((a,b), (c, d))
                       s'                                                     = toRational s
 
-data Transform = Transform Vec R deriving (Show)
+data Transform = Transform Vec R deriving (Show, Eq)
 
 translate :: Vec -> Transform
 translate v = Transform v 0
 
 rotate :: R -> Transform
--- rotate r = Transform m1 (r `mod'` fullCircle)
-rotate r = Transform m1 (r `mod'` fullCircle)
+rotate = Transform m1
 
 fullCircle :: R
 fullCircle = toRational 360
@@ -65,13 +64,11 @@ bhaskaraIsinApprox x = (4 * x * (180 - x)) / (40500 - x * (180 - x))
 sinR :: R -> R
 sinR x' = let x = mod' x' 360
             in case x of
-                x |   0 <= x && x <  90 ->          bhaskaraIsinApprox $ x
-                x |  90 <= x && x < 180 ->          bhaskaraIsinApprox $ 180 - x
-                x | 180 <= x && x < 270 -> negate . bhaskaraIsinApprox $ x - 180
-                x | 270 <= x && x < 370 -> negate . bhaskaraIsinApprox $ 360 - x
+                x |   0 <= x && x < 180 ->          bhaskaraIsinApprox   x
+                x | 180 <= x && x < 360 -> negate $ bhaskaraIsinApprox $ x - 180
 
 cosR :: R -> R
-cosR x = sinR $ (fullCircle / 4) - x
+cosR x = sinR $ 90 - x
 
 -- Reference material: http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
 trpoint :: Transform -> Point -> Point
@@ -83,20 +80,15 @@ trvec :: Transform -> Vec -> Vec
 trvec (Transform (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
                             where x' = x * (cosR r) - y * (sinR r)
                                   y' = x * (sinR r) + y * (cosR r)
-                 
--- trvec (Transform (Vec (vx, vy)) 0) (Vec (x, y)) = Vec (x, y)
--- trvec (Transform             _  r) (Vec (x, y)) = Vec (x', y')
---                                 where x' = x * cosR r - y * sinR r
---                                       y' = x * sinR r - y * cosR r
                                       
 instance Mon Transform where
     m1 = Transform (m1 :: Vec) 0
-    (><) (Transform v1@(Vec (x1, y1)) r1) (Transform v2@(Vec (x2, y2)) r2) = Transform ((><) v1 v2RotatedByr1) newR
+    (><) (Transform v1@(Vec (x1, y1)) r1) (Transform v2@(Vec (x2, y2)) r2) = Transform ((><) v1 v2RotatedByr1) (r1 + r2) 
                                                                     where v2RotatedByr1 = trvec (Transform (Vec (0, 0)) r1) v2
-                                                                          newR = (r1 + r2) `mod'` fullCircle
 
-instance Eq Transform where
-    (Transform v1@(Vec (x1, y1)) r1) == (Transform v2@(Vec (x2, y2)) r2) = (v1 == v2) && (r1 `mod'` fullCircle) == (r2 `mod'` fullCircle)
+-- instance Eq Transform where
+--     (Transform v1@(Vec (x1, y1)) r1) == (Transform v2@(Vec (x2, y2)) r2) = (v1 == v2) && (r1 `mod'` fullCircle) == (r2 `mod'` fullCircle)
+--     t1 /= t2 = not (t1 == t2)
 
 transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)
@@ -104,5 +96,8 @@ transform t (Picture linesArray) = Picture (map transformLine linesArray)
 
 a = translate (Vec (100, 0))
 b = rotate 90
-c = (><) a b
-d = trpoint c (Point (50, 50))
+c = translate (Vec (300, 50))
+-- c = translate (Vec (350, 90))
+-- d = trpoint c (Point (50, 50))
+
+-- (a >< b) >< c == a >< (b >< c)
