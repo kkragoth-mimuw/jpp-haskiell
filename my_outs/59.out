@@ -1,0 +1,8 @@
+300 400 translate
+-118 13 moveto -75 279 lineto
+-75 279 moveto -118 13 lineto
+-86 97 moveto -114 126 lineto
+-114 126 moveto -86 97 lineto
+-86 97 moveto -119 147 lineto
+-119 147 moveto -86 97 lineto
+stroke showpage
