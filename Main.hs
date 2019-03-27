@@ -89,10 +89,7 @@ evalArithmeticOperationPS op = do
 evalPSCommand :: PostscriptCommand -> StateExcept PostscriptRuntimeError PSState ()
 evalPSCommand (PSError token) = throwError $ PSUnknownToken token
 
-evalPSCommand (PSRationalNumber r) = do
-    state <- get
-    put state{stack = r:stack state}
-
+evalPSCommand (PSRationalNumber r) = modify (\s -> s{stack = r:stack s})
 evalPSCommand PSAdd = evalArithmeticOperationPS ((+) :: R -> R -> R)
 evalPSCommand PSSub = evalArithmeticOperationPS ((-) :: R -> R -> R)
 evalPSCommand PSMul = evalArithmeticOperationPS ((*) :: R -> R -> R)
@@ -172,9 +169,9 @@ main = do
     let eitherPicture = evalState (runExceptT (evalPSCommands parsedInput)) initState
 
     case eitherPicture of
-        Right picture -> putStr $ prependProlog . appendEpilog . intRenderingToPSOutput $ renderScaled scale picture
-        Left _ -> putStr $ (prependProlog . appendEpilog) errorMessage
-
+        Right picture -> putStr $ (prependProlog . appendEpilog) . intRenderingToPSOutput $ renderScaled scale picture
+        Left _        -> putStr $ (prependProlog . appendEpilog) errorMessage
+    
 
 getScaleFromArgsIO :: IO Int
 getScaleFromArgsIO = do

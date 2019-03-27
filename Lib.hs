@@ -79,23 +79,21 @@ sinR x' = let x = mod' x' 360
 cosR :: R -> R
 cosR x = sinR $ 90 - x
 
+-- Reference material: http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
 combineTransformation :: Transformation -> Transformation -> Transformation
 combineTransformation (Transformation v1@(Vec (x1, y1)) r1) (Transformation v2@(Vec (x2, y2)) r2) = Transformation (v1 >< v2RotatedByr1) (r1 + r2) 
                                                                     where v2RotatedByr1 = transformationVector (Transformation m1 r1) v2 
 
-foldrTransform :: Transform -> Transformation
-foldrTransform (Transform []) = (Transformation (Vec (0, 0)) 0)
-foldrTransform (Transform [t]) = t
-foldrTransform (Transform (t:xs)) = combineTransformation t (foldrTransform (Transform xs))
+reduceTransform :: Transform -> Transformation
+reduceTransform (Transform t) = fold' combineTransformation (Transformation (m1 :: Vec) 0) t
 
 transformationPoint :: Transformation -> Point -> Point
 transformationPoint (Transformation (Vec (vx, vy)) r) (Point (x, y)) = Point (x' + vx, y' + vy)
                                     where x' = x * (cosR r) - y * (sinR r)
                                           y' = x * (sinR r) + y * (cosR r)
 
--- Reference material: http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
 trpoint :: Transform -> Point -> Point
-trpoint t = transformationPoint (foldrTransform t)
+trpoint t = transformationPoint (reduceTransform t)
 
 transformationVector :: Transformation -> Vec -> Vec
 transformationVector (Transformation (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
@@ -103,13 +101,12 @@ transformationVector (Transformation (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y
                                   y' = x * (sinR r) + y * (cosR r)
 
 trvec :: Transform -> Vec -> Vec
-trvec t = transformationVector (foldrTransform t)
+trvec t = transformationVector (reduceTransform t)
 
 instance Mon Transform where
     m1 = Transform []
     (><) (Transform t1) (Transform t2) = Transform (t1 ++ t2)
                                 where combinedT = t1 ++ t2
-
 
 transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)
