@@ -1,0 +1,15 @@
+300 400 translate
+83 16 moveto 703 210 lineto
+703 210 moveto 83 16 lineto
+562 316 moveto 799 291 lineto
+799 291 moveto 562 316 lineto
+655 350 moveto 693 390 lineto
+655 205 moveto 521 205 lineto
+521 205 moveto 655 205 lineto
+670 292 moveto 785 159 lineto
+785 159 moveto 727 252 lineto
+680 332 moveto 2052 -934 lineto
+2052 -934 moveto 1974 -823 lineto
+1974 -823 moveto 680 332 lineto
+680 332 moveto 1959 -813 lineto
+stroke showpage

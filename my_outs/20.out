@@ -1,0 +1,18 @@
+300 400 translate
+29 99 moveto 29 -7 lineto
+29 -7 moveto -64 24 lineto
+-64 24 moveto 29 99 lineto
+11 52 moveto 0 -4 lineto
+0 -4 moveto 11 52 lineto
+-74 -38 moveto 130 27 lineto
+130 27 moveto 227 64 lineto
+227 64 moveto 271 -90 lineto
+-22 59 moveto -72 -42 lineto
+-72 -42 moveto -22 59 lineto
+-22 59 moveto -127 188 lineto
+-127 188 moveto -22 59 lineto
+-217415 225203 moveto -217325 225184 lineto
+-217325 225184 moveto -217352 225136 lineto
+-217407 225079 moveto -217516 225058 lineto
+-217516 225058 moveto -215729 225300 lineto
+stroke showpage

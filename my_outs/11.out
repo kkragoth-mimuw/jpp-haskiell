@@ -1,0 +1,25 @@
+300 400 translate
+50 -67 moveto -1858 -1984 lineto
+65 43 moveto 4 -22 lineto
+4 -22 moveto 65 43 lineto
+-17 -90 moveto 103 -18 lineto
+103 -18 moveto -17 -90 lineto
+-17 -90 moveto 190 21 lineto
+134 61 moveto 143 -28 lineto
+143 -28 moveto 190 49 lineto
+190 49 moveto 220 3 lineto
+220 3 moveto 134 61 lineto
+403 20 moveto 2755 1410 lineto
+-1743 -50 moveto -1666 -92 lineto
+-1750 -59 moveto -1601 -149 lineto
+-1601 -149 moveto -1750 -59 lineto
+-1750 -59 moveto -1634 -153 lineto
+-1772 -77 moveto -1652 -80 lineto
+-1637 -73 moveto -1677 -28 lineto
+-1677 -28 moveto -1637 -73 lineto
+-1770 -19 moveto -1658 -516 lineto
+-1639 75 moveto -1643 -110 lineto
+-1643 -110 moveto -1612 -162 lineto
+-1612 -162 moveto -1500 -77 lineto
+-1500 -77 moveto -1639 75 lineto
+stroke showpage
