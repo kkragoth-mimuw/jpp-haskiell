@@ -145,7 +145,7 @@ evalPSCommand PSRotate = do
     state <- get
     let previousTransformation = currentTransformation state
     case stack state of
-        r:xs -> let newTransformation = (><) previousTransformation (rotate r)
+        r:xs -> let newTransformation = previousTransformation >< (rotate r)
                     in put state{ currentTransformation = newTransformation
                                 , stack = xs
                                 }
@@ -155,7 +155,7 @@ evalPSCommand PSTranslate = do
     state <- get
     let previousTransformation = currentTransformation state
     case stack state of
-        r2:r1:xs -> let newTransformation = (><) previousTransformation (translate (Vec (r1, r2)))
+        r2:r1:xs -> let newTransformation = previousTransformation >< (translate (Vec (r1, r2)))
                     in put state{ currentTransformation = newTransformation
                                 , stack = xs
                                 }

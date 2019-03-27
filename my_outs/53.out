@@ -3,5 +3,5 @@
 0 -924 moveto -73 -19 lineto
 -73 -19 moveto 4 -99 lineto
 4 -99 moveto -95 3 lineto
--95 3 moveto -66 126 lineto
+-95 3 moveto -65 126 lineto
 stroke showpage

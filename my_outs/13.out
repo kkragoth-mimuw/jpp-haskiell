@@ -1,19 +1,19 @@
 300 400 translate
 16 -67 moveto 80 -60 lineto
 80 -60 moveto 16 -67 lineto
-16 -67 moveto -56 -68 lineto
--56 -68 moveto 16 -67 lineto
+16 -67 moveto -56 -67 lineto
+-56 -67 moveto 16 -67 lineto
 16 -67 moveto -73 -2 lineto
--73 -2 moveto -93 -127 lineto
--93 -127 moveto 16 -67 lineto
--139 11 moveto -176 166 lineto
--236 250 moveto -25 64 lineto
--25 64 moveto -236 250 lineto
--40 44 moveto -163 30 lineto
--163 30 moveto -40 44 lineto
--112 -21 moveto -213 83 lineto
--213 83 moveto -112 -21 lineto
--112 -21 moveto 2963 -5138 lineto
-3099 -5092 moveto 3079 -5020 lineto
-3079 -5020 moveto 3099 -5092 lineto
+-73 -2 moveto -93 -126 lineto
+-93 -126 moveto 16 -67 lineto
+-139 11 moveto -176 167 lineto
+-236 251 moveto -25 64 lineto
+-25 64 moveto -236 251 lineto
+-40 45 moveto -163 31 lineto
+-163 31 moveto -40 45 lineto
+-112 -21 moveto -213 84 lineto
+-213 84 moveto -112 -21 lineto
+-112 -21 moveto 2959 -5153 lineto
+3095 -5108 moveto 3075 -5035 lineto
+3075 -5035 moveto 3095 -5108 lineto
 stroke showpage

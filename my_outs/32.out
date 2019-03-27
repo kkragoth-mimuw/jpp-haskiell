@@ -7,17 +7,17 @@
 -27 -80 moveto 45 25 lineto
 45 25 moveto -146 -17 lineto
 -132 -93 moveto -163 1 lineto
--163 1 moveto -105 -57 lineto
--105 -57 moveto -212 -99 lineto
--212 -99 moveto 1 -72 lineto
+-163 1 moveto -104 -57 lineto
+-104 -57 moveto -213 -98 lineto
+-213 -98 moveto 1 -73 lineto
 -311 30 moveto -319 -3 lineto
 -319 -3 moveto -311 30 lineto
 -176 32 moveto -141 -34 lineto
--141 -34 moveto -57 -361 lineto
--57 -361 moveto -334 -5 lineto
--307 -123 moveto -5250 1728 lineto
--5250 1728 moveto -276 22 lineto
--276 22 moveto -307 -123 lineto
--307 -123 moveto -121 28 lineto
--121 28 moveto -307 -123 lineto
+-141 -34 moveto -58 -360 lineto
+-58 -360 moveto -334 -5 lineto
+-306 -123 moveto -5236 1701 lineto
+-5236 1701 moveto -276 22 lineto
+-276 22 moveto -306 -123 lineto
+-306 -123 moveto -122 28 lineto
+-122 28 moveto -306 -123 lineto
 stroke showpage

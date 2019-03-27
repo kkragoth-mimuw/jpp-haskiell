@@ -10,16 +10,16 @@
 -64 478 moveto 231 309 lineto
 28 282 moveto 23 299 lineto
 -10 281 moveto 70 307 lineto
-77 421 moveto 110 367 lineto
-110 367 moveto 77 421 lineto
+77 421 moveto 110 368 lineto
+110 368 moveto 77 421 lineto
 77 421 moveto 190 303 lineto
 190 303 moveto 89 244 lineto
 89 244 moveto 77 421 lineto
-77 421 moveto 138 325 lineto
-88 73 moveto 397 490 lineto
-397 490 moveto 88 73 lineto
-300 288 moveto 369 275 lineto
-369 275 moveto 300 288 lineto
-300 288 moveto 461 369 lineto
-513 352 moveto 437 327 lineto
+77 421 moveto 138 326 lineto
+89 73 moveto 396 492 lineto
+396 492 moveto 89 73 lineto
+299 290 moveto 369 277 lineto
+369 277 moveto 299 290 lineto
+299 290 moveto 460 372 lineto
+511 356 moveto 436 330 lineto
 stroke showpage

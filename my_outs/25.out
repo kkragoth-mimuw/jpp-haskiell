@@ -5,11 +5,11 @@
 43 -106 moveto 3 -344 lineto
 3 -344 moveto 43 -106 lineto
 18 -13 moveto 1775 -895 lineto
-1775 -895 moveto -1395 -164 lineto
-17 -18 moveto 247 -198 lineto
+1775 -895 moveto -1393 -162 lineto
+17 -18 moveto 246 -198 lineto
 59 -73 moveto 117 27 lineto
-117 27 moveto 242 -67 lineto
+117 27 moveto 241 -67 lineto
 213 20 moveto 175 54 lineto
 175 54 moveto 213 20 lineto
-213 20 moveto 258 96 lineto
+213 20 moveto 258 95 lineto
 stroke showpage

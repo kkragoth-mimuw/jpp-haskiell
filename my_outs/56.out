@@ -15,14 +15,14 @@
 -3 179 moveto 189 119 lineto
 189 119 moveto 88 211 lineto
 88 211 moveto 88 114 lineto
-88 114 moveto 1764 -201 lineto
+88 114 moveto 1762 -201 lineto
 188 185 moveto 72 4 lineto
--1348 6006 moveto 247 -89 lineto
+-1348 6001 moveto 247 -89 lineto
 247 -89 moveto -40 22 lineto
 -40 22 moveto 221 11 lineto
-221 11 moveto -1348 6006 lineto
--1348 6006 moveto 64 29 lineto
-64 29 moveto -1348 6006 lineto
--747 3665 moveto -757 3714 lineto
--757 3714 moveto -747 3665 lineto
+221 11 moveto -1348 6001 lineto
+-1348 6001 moveto 65 29 lineto
+65 29 moveto -1348 6001 lineto
+-753 3670 moveto -763 3719 lineto
+-763 3719 moveto -753 3670 lineto
 stroke showpage

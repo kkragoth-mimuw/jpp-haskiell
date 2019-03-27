@@ -3,6 +3,7 @@
 module Lib where
 
 import Data.Fixed (mod')
+import Data.List (foldl')
 
 import Mon
 
@@ -67,11 +68,14 @@ rotate r = Transform [Transformation m1 r]
 fullCircle :: R
 fullCircle = toRational 360
 
+normalizeAngle :: R -> R
+normalizeAngle = flip mod' fullCircle
+
 bhaskaraIsinApprox :: R -> R
 bhaskaraIsinApprox x = (4 * x * (180 - x)) / (40500 - x * (180 - x))
 
 sinR :: R -> R
-sinR x' = let x = mod' x' 360
+sinR x' = let x = normalizeAngle x'
             in case x of
                 x |   0 <= x && x < 180 ->          bhaskaraIsinApprox $  x
                 x | 180 <= x && x < 360 -> negate $ bhaskaraIsinApprox $  x - 180
@@ -85,15 +89,22 @@ combineTransformation (Transformation v1@(Vec (x1, y1)) r1) (Transformation v2@(
                                                                     where v2RotatedByr1 = transformationVector (Transformation m1 r1) v2 
 
 reduceTransform :: Transform -> Transformation
-reduceTransform (Transform t) = fold' combineTransformation (Transformation (m1 :: Vec) 0) t
+reduceTransform (Transform t) = foldr combineTransformation (Transformation (m1 :: Vec) 0) t
 
 transformationPoint :: Transformation -> Point -> Point
 transformationPoint (Transformation (Vec (vx, vy)) r) (Point (x, y)) = Point (x' + vx, y' + vy)
                                     where x' = x * (cosR r) - y * (sinR r)
                                           y' = x * (sinR r) + y * (cosR r)
 
+transformPoint :: Point -> Transformation -> Point
+transformPoint  (Point (x, y)) (Transformation (Vec (vx, vy)) r)  = Point (x' + vx, y' + vy)
+                                where x' = x * (cosR r) - y * (sinR r)
+                                      y' = x * (sinR r) + y * (cosR r)
+
 trpoint :: Transform -> Point -> Point
-trpoint t = transformationPoint (reduceTransform t)
+-- trpoint t = transformationPoint (reduceTransform t)
+trpoint (Transform t) p = foldl' transformPoint p (reverse t)
+-- trpoint (Transform t) p = foldl' transformPoint p (reverse t)
 
 transformationVector :: Transformation -> Vec -> Vec
 transformationVector (Transformation (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
@@ -105,8 +116,14 @@ trvec t = transformationVector (reduceTransform t)
 
 instance Mon Transform where
     m1 = Transform []
-    (><) (Transform t1) (Transform t2) = Transform (t1 ++ t2)
-                                where combinedT = t1 ++ t2
+    (><) (Transform t1) (Transform t2) = Transform simplifiedT
+                                where combine ::  Transformation -> [Transformation] -> [Transformation]
+                                      combine t [] = [t]
+                                      combine t (x:xs) = case (x, t) of
+                                                       ((Transformation (Vec (0, 0)) r1), (Transformation (Vec (0, 0)) r2)) -> (Transformation (Vec (0, 0))((r1 + r2) `mod'` fullCircle)):xs
+                                                       ((Transformation (Vec (x1, y1)) r1), (Transformation (Vec (x2, y2)) r2)) | r1 `mod'` fullCircle == 0 && r2 `mod'` fullCircle == 0 -> ((Transformation (Vec (x1 + x2, y1 + y2)) 0):xs)
+                                                       _ -> (t:x:xs)  
+                                      simplifiedT = foldr combine [] (t1 ++ t2)
 
 transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)

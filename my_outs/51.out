@@ -3,7 +3,7 @@
 -122 95 moveto -167 40 lineto
 -167 40 moveto -25 -56 lineto
 -25 -56 moveto -122 95 lineto
--122 95 moveto 373 1104 lineto
-373 1104 moveto -122 95 lineto
--41 157 moveto -81 162 lineto
+-122 95 moveto 370 1103 lineto
+370 1103 moveto -122 95 lineto
+-41 156 moveto -82 162 lineto
 stroke showpage
