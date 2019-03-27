@@ -44,14 +44,13 @@ matchStringToToken     "lineto" = PSLineto
 matchStringToToken     "rotate" = PSRotate
 matchStringToToken  "closepath" = PSClosepath
 matchStringToToken  "translate" = PSTranslate
-matchStringToToken ('+':'-':_)  = PSError "Invalid combination +-"
-matchStringToToken ('+':'+':_)  = PSError "Invalid combination ++"
-matchStringToToken    ('+':xs)  = matchStringToToken xs
+matchStringToToken ('+':'-':xs) = PSError $ "Invalid combination +- preceding " ++ xs
+matchStringToToken ('+':'+':xs) = PSError $ "Invalid combination ++ preceding " ++ xs
+matchStringToToken     ('+':xs) = matchStringToToken xs
 matchStringToToken n = case n' of
                    Just n ->      PSRationalNumber (toRational n)
                    Nothing ->     PSError n
         where n' = readMaybe n :: Maybe Int
-
 
 data PSState = PSState { stack                     :: [R] 
                        , currentPoint              :: Maybe Point  
@@ -106,10 +105,10 @@ evalPSCommand PSMoveto = do
     case stack state of 
         r2:r1:xs -> let newPoint = Point (r1, r2)
                         newTranslatedPoint = trpoint (currentTransformation state) newPoint
-                         in put state{ currentPoint = Just newTranslatedPoint
-                                     , startPointOfCurrentPath = Just newTranslatedPoint
-                                     , stack = xs
-                                     }
+                            in put state{ currentPoint = Just newTranslatedPoint
+                                        , startPointOfCurrentPath = Just newTranslatedPoint
+                                        , stack = xs
+                                        }
         _ -> throwError PSErrorStack
 
 evalPSCommand PSLineto = do
@@ -161,17 +160,15 @@ evalPSCommand PSTranslate = do
                                 }
         _ -> throwError PSErrorStack
 
-
+main :: IO ()
 main = do
     scale <- getScaleFromArgsIO
     parsedInput <- parseInput . words <$> getContents
 
-    let eitherPicture = evalState (runExceptT (evalPSCommands parsedInput)) initState
+    either (\_ ->       putStr $ (prependProlog . appendEpilog) $ errorMessage)
+           (\picture -> putStr $ (prependProlog . appendEpilog) . intRenderingToPSOutput $ renderScaled scale picture)
+           (evalState (runExceptT (evalPSCommands parsedInput)) initState)
 
-    case eitherPicture of
-        Right picture -> putStr $ (prependProlog . appendEpilog) . intRenderingToPSOutput $ renderScaled scale picture
-        Left _        -> putStr $ (prependProlog . appendEpilog) errorMessage
-    
 
 getScaleFromArgsIO :: IO Int
 getScaleFromArgsIO = do
