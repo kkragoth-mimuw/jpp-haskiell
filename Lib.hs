@@ -82,28 +82,21 @@ sinR x' = let x = normalizeAngle x'
 cosR :: R -> R
 cosR x = sinR $ 90 - x
 
-combineTransformation :: Transformation -> Transformation -> Transformation
-combineTransformation (Transformation v1@(Vec (x1, y1)) r1) (Transformation v2@(Vec (x2, y2)) r2) = Transformation (v1 >< v2RotatedByr1) (r1 + r2) 
-                                                                    where v2RotatedByr1 = transformationVector (Transformation m1 r1) v2 
-
-reduceTransform :: Transform -> Transformation
-reduceTransform (Transform t) = foldr combineTransformation (Transformation (m1 :: Vec) 0) t
-
 transformPoint :: Transformation -> Point -> Point
 transformPoint (Transformation (Vec (vx, vy)) r) (Point (x, y)) = Point (x' + vx, y' + vy)
                                     where x' = x * (cosR r) - y * (sinR r)
                                           y' = x * (sinR r) + y * (cosR r)
-
+                                          
 trpoint :: Transform -> Point -> Point
 trpoint (Transform t) p = foldr transformPoint p t
 
-transformationVector :: Transformation -> Vec -> Vec
-transformationVector (Transformation (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
+transformVector :: Transformation -> Vec -> Vec
+transformVector (Transformation (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
                             where x' = x * (cosR r) - y * (sinR r)
                                   y' = x * (sinR r) + y * (cosR r)
 
 trvec :: Transform -> Vec -> Vec
-trvec t = transformationVector (reduceTransform t)
+trvec (Transform t) v = foldr transformVector v t
 
 instance Mon Transform where
     m1 = Transform []
