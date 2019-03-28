@@ -3,7 +3,6 @@
 module Lib where
 
 import Data.Fixed (mod')
-import Data.List (foldl')
 
 import Mon
 
@@ -90,20 +89,13 @@ combineTransformation (Transformation v1@(Vec (x1, y1)) r1) (Transformation v2@(
 reduceTransform :: Transform -> Transformation
 reduceTransform (Transform t) = foldr combineTransformation (Transformation (m1 :: Vec) 0) t
 
-transformationPoint :: Transformation -> Point -> Point
-transformationPoint (Transformation (Vec (vx, vy)) r) (Point (x, y)) = Point (x' + vx, y' + vy)
+transformPoint :: Transformation -> Point -> Point
+transformPoint (Transformation (Vec (vx, vy)) r) (Point (x, y)) = Point (x' + vx, y' + vy)
                                     where x' = x * (cosR r) - y * (sinR r)
                                           y' = x * (sinR r) + y * (cosR r)
 
-transformPoint :: Point -> Transformation -> Point
-transformPoint  (Point (x, y)) (Transformation (Vec (vx, vy)) r)  = Point (x' + vx, y' + vy)
-                                where x' = x * (cosR r) - y * (sinR r)
-                                      y' = x * (sinR r) + y * (cosR r)
-
 trpoint :: Transform -> Point -> Point
--- trpoint t = transformationPoint (reduceTransform t)
-trpoint (Transform t) p = foldl' transformPoint p (reverse t)
--- trpoint (Transform t) p = foldl' transformPoint p (reverse t)
+trpoint (Transform t) p = foldr transformPoint p t
 
 transformationVector :: Transformation -> Vec -> Vec
 transformationVector (Transformation (Vec (vx, vy)) r) (Vec (x, y)) = Vec (x', y')
