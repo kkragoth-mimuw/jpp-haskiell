@@ -45,13 +45,14 @@ matchStringToToken inputString = case inputString of
                 "mul" -> PSMul
                 "moveto" -> PSMoveto
                 "lineto" -> PSLineto
-                "rotate" -> PSClosepath
+                "closepath" -> PSClosepath
+                "rotate" -> PSRotate
                 "translate" -> PSTranslate
                 _ -> case n' of
                         Just n ->      PSRationalNumber (toRational n)
                         Nothing ->     PSError inputString
                     where n' = readMaybe inputString :: Maybe Int
-                    
+
 
 data PSState = PSState { stack                     :: [R] 
                        , currentPoint              :: Maybe Point  
@@ -132,14 +133,11 @@ evalPSCommand PSClosepath = do
     let startP = startPointOfCurrentPath state
     let curP = currentPoint state
     case (startP, curP) of
-        (Nothing, _) -> return ()
-        (_, Nothing) -> return ()
-        (Just p1, Just p2) -> if p1 == p2 then return ()
-                              else
-                                    let newPicture = (&) (picture state) (Picture [Line (p2, p1)])
-                                        in put state{ picture = newPicture
-                                                    , currentPoint = startP
-                                                    }
+        (Just p1, Just p2) | p1 /= p2 -> let newPicture = (&) (picture state) (Picture [Line (p2, p1)])
+                                            in put state{ picture = newPicture
+                                                        , currentPoint = startP
+                                                        }
+        _ -> return ()
 
 evalPSCommand PSRotate = do
     state <- get
