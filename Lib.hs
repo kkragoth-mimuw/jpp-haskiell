@@ -48,11 +48,11 @@ renderScaled s (Picture linesArray) = map (intLine . rationalCordinatesToIntCord
                       intLine [a, b, c, d]                                   = ((a,b), (c, d))
                       sR                                                     = toRational s
 
-
+-- Transformation : Vector of translation and R is rotation
 data Transformation = Transformation Vec R deriving (Show)
 
 instance Eq Transformation where
-    (Transformation v1 r1) == (Transformation v2 r2) = v1 == v2 && (r1 `mod'` fullCircle) == (r2 `mod'` fullCircle)
+    (Transformation v1 r1) == (Transformation v2 r2) = v1 == v2 && normalizeAngle r1 == normalizeAngle r2
 
 -- List of Transformations
 -- Tried to do this using single Transformation but due to sinR, cosR precision errors
@@ -83,7 +83,6 @@ sinR x' = let x = normalizeAngle x'
 cosR :: R -> R
 cosR x = sinR $ 90 - x
 
--- Reference material: http://www.math.ubc.ca/~cass/graphics/text/old.pdf/last/ch4.pdf
 combineTransformation :: Transformation -> Transformation -> Transformation
 combineTransformation (Transformation v1@(Vec (x1, y1)) r1) (Transformation v2@(Vec (x2, y2)) r2) = Transformation (v1 >< v2RotatedByr1) (r1 + r2) 
                                                                     where v2RotatedByr1 = transformationVector (Transformation m1 r1) v2 
@@ -120,8 +119,8 @@ instance Mon Transform where
                                 where combine ::  Transformation -> [Transformation] -> [Transformation]
                                       combine t [] = [t]
                                       combine t (x:xs) = case (x, t) of
-                                                       ((Transformation (Vec (0, 0)) r1), (Transformation (Vec (0, 0)) r2)) -> (Transformation (Vec (0, 0))((r1 + r2) `mod'` fullCircle)):xs
-                                                       ((Transformation (Vec (x1, y1)) r1), (Transformation (Vec (x2, y2)) r2)) | r1 `mod'` fullCircle == 0 && r2 `mod'` fullCircle == 0 -> ((Transformation (Vec (x1 + x2, y1 + y2)) 0):xs)
+                                                       ((Transformation (Vec (0, 0)) r1), (Transformation (Vec (0, 0)) r2)) -> (Transformation (Vec (0, 0))(normalizeAngle (r1 + r2))):xs
+                                                       ((Transformation (Vec (x1, y1)) r1), (Transformation (Vec (x2, y2)) r2)) | normalizeAngle r1 == 0 && normalizeAngle r2 == 0 -> ((Transformation (Vec (x1 + x2, y1 + y2)) 0):xs)
                                                        _ -> (t:x:xs)  
                                       simplifiedT = foldr combine [] (t1 ++ t2)
 
