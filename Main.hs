@@ -35,22 +35,23 @@ parseInput :: [String] -> [PostscriptCommand]
 parseInput =  map matchStringToToken
 
 matchStringToToken :: String -> PostscriptCommand
-matchStringToToken        "add" = PSAdd
-matchStringToToken        "sub" = PSSub
-matchStringToToken        "div" = PSDiv
-matchStringToToken        "mul" = PSMul
-matchStringToToken     "moveto" = PSMoveto
-matchStringToToken     "lineto" = PSLineto
-matchStringToToken     "rotate" = PSRotate
-matchStringToToken  "closepath" = PSClosepath
-matchStringToToken  "translate" = PSTranslate
 matchStringToToken ('+':'-':xs) = PSError $ "Invalid combination +- preceding " ++ xs
 matchStringToToken ('+':'+':xs) = PSError $ "Invalid combination ++ preceding " ++ xs
 matchStringToToken     ('+':xs) = matchStringToToken xs
-matchStringToToken n = case n' of
-                   Just n ->      PSRationalNumber (toRational n)
-                   Nothing ->     PSError n
-        where n' = readMaybe n :: Maybe Int
+matchStringToToken inputString = case inputString of
+                "add" -> PSAdd
+                "sub" -> PSSub
+                "div" -> PSDiv
+                "mul" -> PSMul
+                "moveto" -> PSMoveto
+                "lineto" -> PSLineto
+                "rotate" -> PSClosepath
+                "translate" -> PSTranslate
+                _ -> case n' of
+                        Just n ->      PSRationalNumber (toRational n)
+                        Nothing ->     PSError inputString
+                    where n' = readMaybe inputString :: Maybe Int
+                    
 
 data PSState = PSState { stack                     :: [R] 
                        , currentPoint              :: Maybe Point  
