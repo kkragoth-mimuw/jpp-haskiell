@@ -42,10 +42,9 @@ type IntRendering = [IntLine]
 
 renderScaled :: Int -> Picture -> IntRendering
 renderScaled s (Picture linesArray) = map (intLine . rationalCordinatesToIntCordinates . scaleCordinates) linesArray
-                where scaleCordinates (Line ((Point (a, b)), (Point(c, d)))) = map (*sR) [a,b,c,d]
-                      rationalCordinatesToIntCordinates                      = map (round . fromRational)
-                      intLine [a, b, c, d]                                   = ((a,b), (c, d))
-                      sR                                                     = toRational s
+                where scaleCordinates (Line ((Point (a, b)), (Point(c, d)))) = map (* toRational s) [a,b,c,d]
+                      rationalCordinatesToIntCordinates = map (round . fromRational)
+                      intLine [a, b, c, d] = ((a,b), (c, d))
 
 -- Transformation : Vector of translation and R is rotation
 data Transformation = Transformation Vec R deriving (Show)
@@ -86,7 +85,7 @@ transformPoint :: Transformation -> Point -> Point
 transformPoint (Transformation (Vec (vx, vy)) r) (Point (x, y)) = Point (x' + vx, y' + vy)
                                     where x' = x * (cosR r) - y * (sinR r)
                                           y' = x * (sinR r) + y * (cosR r)
-                                          
+
 trpoint :: Transform -> Point -> Point
 trpoint (Transform t) p = foldr transformPoint p t
 
@@ -101,13 +100,14 @@ trvec (Transform t) v = foldr transformVector v t
 instance Mon Transform where
     m1 = Transform []
     (><) (Transform t1) (Transform t2) = Transform simplifiedT
-                                where combine ::  Transformation -> [Transformation] -> [Transformation]
-                                      combine t [] = [t]
-                                      combine t (x:xs) = case (x, t) of
-                                                       ((Transformation (Vec (0, 0)) r1), (Transformation (Vec (0, 0)) r2)) -> (Transformation (Vec (0, 0))(normalizeAngle (r1 + r2))):xs
-                                                       ((Transformation (Vec (x1, y1)) r1), (Transformation (Vec (x2, y2)) r2)) | normalizeAngle r1 == 0 && normalizeAngle r2 == 0 -> ((Transformation (Vec (x1 + x2, y1 + y2)) 0):xs)
-                                                       _ -> (t:x:xs)  
-                                      simplifiedT = foldr combine [] (t1 ++ t2)
+            where simplifiedT = foldr combine [] (t1 ++ t2)
+                  combine ::  Transformation -> [Transformation] -> [Transformation]
+                  combine t [] = [t]
+                  combine t (x:xs) = case (x, t) of
+                        ((Transformation (Vec (0, 0)) r1), (Transformation (Vec (0, 0)) r2)) -> (Transformation (Vec (0, 0))(normalizeAngle (r1 + r2))):xs
+                        ((Transformation (Vec (x1, y1)) r1), (Transformation (Vec (x2, y2)) r2))
+                                       | normalizeAngle r1 == 0 && normalizeAngle r2 == 0 -> (Transformation (Vec (x1 + x2, y1 + y2)) 0):xs
+                        _ -> (t:x:xs)  
 
 transform :: Transform -> Picture -> Picture
 transform t (Picture linesArray) = Picture (map transformLine linesArray)
